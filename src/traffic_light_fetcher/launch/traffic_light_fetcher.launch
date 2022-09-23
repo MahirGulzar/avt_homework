@@ -1,3 +1,5 @@
 <?xml version="1.0"?>
 <launch>
+    <node pkg="traffic_light_fetcher" type="traffic_light_fetcher.py" name="traffic_light_fetcher" output="screen">
+    </node>
 </launch>

@@ -1,5 +1,6 @@
-#!/usr/env/bin python
+#!/usr/bin/env python
 # coding=utf-8
+from traffic_light_fetcher.tl_detector import Detector
 from geometry_msgs.msg import Vector3
 from std_msgs.msg import Bool
 import numpy as np

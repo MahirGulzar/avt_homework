@@ -35,6 +35,13 @@ RUN apt-get update && \
     apt-get install -y git && \
     apt-get install nano
 
+RUN git clone https://github.com/MahirGulzar/avt_homework.git ~/avt_homework
+
+RUN apt-get update && \
+    apt-get install ca-certificates && \
+    apt-get install apt-utils -y && \
+    apt-get install -y lsb-release
+
 RUN echo "source activate robostackenv" >> ~/.bashrc
 
 USER root
