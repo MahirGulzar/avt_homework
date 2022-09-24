@@ -1,48 +1,72 @@
-FROM nvidia/cuda:11.2.0-runtime-ubuntu18.04
+FROM nvidia/cuda:11.2.0-devel-ubuntu20.04
 
-ENV PATH="/root/miniconda3/bin:${PATH}"
+ENV PATH="/root/miniconda3/bin:${PATH}:"
 ARG PATH="/root/miniconda3/bin:${PATH}"
-RUN apt-get update
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Tallinn
+RUN apt update && apt-get install -y tzdata
 
-RUN apt-get install -y wget && rm -rf /var/lib/apt/lists/*
-RUN apt-get update && apt-get install -y \
-    python-pip
+ARG ROS_DISTRO_ARG="noetic"
+ENV LOGNAME root
+ENV ROS_DISTRO ${ROS_DISTRO_ARG}
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
 
+# Setup ROS
+RUN apt-get update -y || true &&
+    apt-get install -y lsb-release && apt clean all &&
+    sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' &&
+    apt install -y curl &&
+    curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add - &&
+    apt-get update || true &&
+    apt-get install -y ros-$ROS_DISTRO-ros-base build-essential cmake usbutils libusb-1.0-0-dev git -y --allow-unauthenticated
+
+# Install Packages depending on ROS distro
+RUN apt-get install -y python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool
+
+RUN rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update &&
+    apt-get install -y git wget &&
+    apt-get install nano &&
+    apt-get install -y python
+
+RUN apt-get update && apt-get install -y python3-pip
+
+# Miniconda
 RUN wget \
-    https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-    && mkdir /root/.conda \
-    && bash Miniconda3-latest-Linux-x86_64.sh -b \
-    && rm -f Miniconda3-latest-Linux-x86_64.sh 
+    https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh &&
+    mkdir /root/.conda &&
+    bash Miniconda3-latest-Linux-x86_64.sh -b &&
+    rm -f Miniconda3-latest-Linux-x86_64.sh
 
 RUN conda --version
-# Make RUN commands use the new environment:
+
 SHELL ["conda", "run", "-n", "base", "/bin/bash", "-c"]
-RUN conda install mamba -c conda-forge -y \
-    && mamba create -n robostackenv ros-noetic-desktop python=3.9 -c robostack -c robostack-experimental -c conda-forge --no-channel-priority --override-channels -y \
-    && conda install -c conda-forge catkin_tools
+# RUN conda install mamba -c conda-forge -y
+
+RUN conda create -n avt_hw_env python=3.9
+
+RUN conda install -c conda-forge catkin_tools
+
+# Make RUN commands use the new environment:
+SHELL ["conda", "run", "-n", "avt_hw_env", "/bin/bash", "-c"]
+RUN conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1.0 -y
 
 COPY requirements.txt ./
 
-# Make RUN commands use the new environment:
-SHELL ["conda", "run", "-n", "robostackenv", "/bin/bash", "-c"]
-RUN conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1.0 -y
 RUN pip install -r requirements.txt
-
-RUN echo "export PATH=/root/miniconda3/bin:/usr/local/cuda-11.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" >> /root/.bashrc \
-    &&  echo "export LD_LIBRARY_PATH=/usr/local/cuda-11.2/lib64:$CONDA_PREFIX/lib/" >> /root/.bashrc
-
-RUN apt-get update && \
-    apt-get install -y git && \
-    apt-get install nano
 
 RUN git clone https://github.com/MahirGulzar/avt_homework.git ~/avt_homework
 
-RUN apt-get update && \
-    apt-get install ca-certificates && \
-    apt-get install apt-utils -y && \
-    apt-get install -y lsb-release
+# RUN echo "export PATH=$PATH:/usr/bin:/usr/local/cuda-11.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" >> /root/.bashrc \
+#     &&  echo "export LD_LIBRARY_PATH=/usr/local/cuda-11.2/lib64:$LD_LIBRARY_PATH" >> /root/.bashrc
+#     &&  echo "source activate avt_hw_env" >> ~/.bashrc
 
-RUN echo "source activate robostackenv" >> ~/.bashrc
+RUN echo "export PATH=$PATH:/root/miniconda3/bin:/usr/bin:/usr/local/cuda-11.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" >>/root/.bashrc &&
+    echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/" >>/root/.bashrc &&
+    echo "source activate avt_hw_env" >>~/.bashrc
 
-USER root
-ENTRYPOINT ["/bin/bash"]
+RUN echo "source /opt/ros/noetic/setup.bash" >>~/.bashrc
+
+CMD ["bash"]

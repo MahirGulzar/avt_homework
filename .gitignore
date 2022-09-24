@@ -2,6 +2,7 @@ devel/
 logs/
 build/
 
+__pycache__/
 .vscode/
 .catkin_tools/
 *.pyc 
