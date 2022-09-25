@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-import numpy as np
-import tensorflow_hub as hub
-import tensorflow as tf
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'    # Supress tensorflow log clutter
-
+import tensorflow as tf
+import tensorflow_hub as hub
+import numpy as np
 
 class TrafficLightDetector:
 
