@@ -1,3 +1,6 @@
+
+![example workflow](https://github.com/MahirGulzar/avt_homework/actions/workflows/linter.yml/badge.svg)
+
 ##  Description
 <br />
 Traffic light fetcher ros package that detects traffic light from an input video stream and publishes related information.
