@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <launch>
 
-    <node pkg="traffic_light_fetcher" type="traffic_light_fetcher.py" name="traffic_light_fetcher" output="screen">
+    <node pkg="traffic_light_fetcher" type="tl_fetcher" name="traffic_light_fetcher" output="screen">
         <param name="video_path" value="$(find traffic_light_fetcher)/data/traffic_light_hw.mp4" />
     </node>
 
-    <node pkg="traffic_light_fetcher" type="traffic_light_analysis.py" name="traffic_light_analysis" output="screen" />
+    <node pkg="traffic_light_fetcher" type="tl_analysis" name="traffic_light_analysis" output="screen" />
 
 </launch>

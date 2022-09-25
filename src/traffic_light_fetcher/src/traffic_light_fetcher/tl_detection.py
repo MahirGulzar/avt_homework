@@ -10,9 +10,10 @@ class TrafficLightDetector:
 
     TRAFFIC_LIGHT_LABEL = 24
 
-    def __init__(self, model_url="https://tfhub.dev/google/faster_rcnn/openimages_v4/inception_resnet_v2/1"):
+    def __init__(self):
 
         # Load object detection model from tensorflow hub by default we use faster_rcnn
+        model_url="https://tfhub.dev/google/faster_rcnn/openimages_v4/inception_resnet_v2/1"
         self.__detector = hub.load(model_url).signatures['default']
 
     def detect(self, image):

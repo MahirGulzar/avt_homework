@@ -1,8 +1,13 @@
+# VS Code
+.vscode/
+
+# ROS
 devel/
 logs/
 build/
-
-__pycache__/
-.vscode/
 .catkin_tools/
+.catkin_workspace
+
+# Python
+__pycache__/
 *.pyc 

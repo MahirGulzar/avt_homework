@@ -1,16 +1,15 @@
 FROM nvidia/cuda:11.2.0-devel-ubuntu20.04
 
-ENV PATH="/root/miniconda3/bin:${PATH}:"
-ARG PATH="/root/miniconda3/bin:${PATH}"
 ARG DEBIAN_FRONTEND=noninteractive
-ENV TZ=Europe/Tallinn
-RUN apt update && apt-get install -y tzdata
-
 ARG ROS_DISTRO_ARG="noetic"
-ENV LOGNAME root
 ENV ROS_DISTRO ${ROS_DISTRO_ARG}
-ENV LANG C.UTF-8
-ENV LC_ALL C.UTF-8
+ENV TZ=Europe/Tallinn
+
+# Install python and other required packages
+RUN apt update && apt-get install -y tzdata &&
+    apt-get install -y git wget &&
+    apt-get install -y python &&
+    apt-get install -y python3-pip
 
 # Setup ROS
 RUN apt-get update -y || true &&
@@ -26,47 +25,48 @@ RUN apt-get install -y python3-rosdep python3-rosinstall python3-rosinstall-gene
 
 RUN rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update &&
-    apt-get install -y git wget &&
-    apt-get install nano &&
-    apt-get install -y python
-
-RUN apt-get update && apt-get install -y python3-pip
-
 # Miniconda
-RUN wget \
+ENV PATH="/root/miniconda3/bin:${PATH}"
+ARG PATH="/root/miniconda3/bin:${PATH}"
+
+RUN apt-get update && wget \
     https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh &&
     mkdir /root/.conda &&
     bash Miniconda3-latest-Linux-x86_64.sh -b &&
     rm -f Miniconda3-latest-Linux-x86_64.sh
 
-RUN conda --version
+RUN conda init bash
 
 SHELL ["conda", "run", "-n", "base", "/bin/bash", "-c"]
-# RUN conda install mamba -c conda-forge -y
+RUN conda create -n avt_hw_env python=3.9 &&
+    conda config --set channel_priority true --set ssl_verify false &&
+    conda update --all --yes &&
+    conda update conda &&
+    conda install -c conda-forge catkin_tools
 
-RUN conda create -n avt_hw_env python=3.9
-
-RUN conda install -c conda-forge catkin_tools
-
-# Make RUN commands use the new environment:
+# Install cudatoolkit & cudnn inside avt_hw_env environment
 SHELL ["conda", "run", "-n", "avt_hw_env", "/bin/bash", "-c"]
 RUN conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1.0 -y
 
+# Python vision libraries
 COPY requirements.txt ./
-
 RUN pip install -r requirements.txt
 
-RUN git clone https://github.com/MahirGulzar/avt_homework.git ~/avt_homework
-
-# RUN echo "export PATH=$PATH:/usr/bin:/usr/local/cuda-11.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" >> /root/.bashrc \
-#     &&  echo "export LD_LIBRARY_PATH=/usr/local/cuda-11.2/lib64:$LD_LIBRARY_PATH" >> /root/.bashrc
-#     &&  echo "source activate avt_hw_env" >> ~/.bashrc
-
+# Export variables to .bashrc
 RUN echo "export PATH=$PATH:/root/miniconda3/bin:/usr/bin:/usr/local/cuda-11.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" >>/root/.bashrc &&
     echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/" >>/root/.bashrc &&
-    echo "source activate avt_hw_env" >>~/.bashrc
+    echo "source activate avt_hw_env" >>~/.bashrc &&
+    echo "source /opt/ros/$ROS_DISTRO/setup.bash" >>~/.bashrc
 
-RUN echo "source /opt/ros/noetic/setup.bash" >>~/.bashrc
+# Clone task repo and build it
+ENV AVT_HOME="$HOME/avt_homework/"
+RUN git clone https://github.com/MahirGulzar/avt_homework.git $AVT_HOME &&
+    source /opt/ros/$ROS_DISTRO/setup.bash &&
+    cd $AVT_HOME &&
+    catkin_make
 
-CMD ["bash"]
+# Use ros entrypoint bash
+COPY ros_entrypoint.sh ./
+RUN chmod +x ros_entrypoint.sh
+
+ENTRYPOINT [ "/bin/bash", "ros_entrypoint.sh"]
