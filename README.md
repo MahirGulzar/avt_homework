@@ -38,3 +38,8 @@ docker-compose up --build
 cd <repo directory>
 ./run
 ```
+
+### Visualize
+<br />
+
+For visualizing detections subscribe to ```/traffic_light_image ``` topic in rviz

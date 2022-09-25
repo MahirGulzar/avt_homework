@@ -3,7 +3,12 @@
 
 from traffic_light_fetcher.tl_detection import TrafficLightDetector
 from geometry_msgs.msg import Vector3
+from sensor_msgs.msg import Image
 from std_msgs.msg import Bool
+from cv_bridge import CvBridge
+from PIL import Image as PILImage
+from PIL import ImageDraw
+import numpy as np
 import rospy
 import cv2
 
@@ -21,17 +26,20 @@ class TrafficLightFetcher:
             "traffic_light_detected", Bool, queue_size=1)
         self._tl_size_pub = rospy.Publisher(
             "traffic_light_size", Vector3, queue_size=1)
+        self._tl_image_pub = rospy.Publisher(
+            "traffic_light_image", Image, queue_size=1)
 
         # ----------------
         # Node Attributes
         # ----------------
         rospy.loginfo(self.__class__.__name__ +
-                      " - Loading high-res faster-rcnn from tensorflow_hub ...")
+                      " - Loading Efficientdet-lite from tensorflow_hub ...")
         self.__tl_detector = TrafficLightDetector()
         rospy.loginfo(self.__class__.__name__ +
                       " - Detector ready, initial inference may take time! ")
         # Publish frequnecy by default is one frame per second
         self.__rate = rospy.Rate(1)
+        self.__bridge = CvBridge()
 
     def _process_stream(self):
         """ 
@@ -39,6 +47,7 @@ class TrafficLightFetcher:
         """
 
         video_capturer = cv2.VideoCapture(self.__video_path)
+
         success, image = video_capturer.read()
 
         while success and not rospy.is_shutdown():
@@ -63,8 +72,19 @@ class TrafficLightFetcher:
                     # Only publish bounds when traffic light is detected
                     self._tl_size_pub.publish(vector_msg)
 
+                    # Get Image message with bounding box for visualization
+                    image_msg = self._get_bounding_box_image(image, bounds)
+                else:
+                    # No bounding box, get original image
+                    image_msg = self.__bridge.cv2_to_imgmsg(
+                        image, encoding="passthrough")
+
                 # Always publish detection status
                 self._tl_status_pub.publish(Bool(is_tl_detected))
+
+                # Publish image with bounding box for visualization
+                image_msg.header.stamp = rospy.Time.now()
+                self._tl_image_pub.publish(image_msg)
 
                 success, image = video_capturer.read()
 
@@ -74,6 +94,34 @@ class TrafficLightFetcher:
                              " video connection dropped..")
 
             self.__rate.sleep()
+
+    def _get_bounding_box_image(self, image, bounds):
+        """ Draws bounding box on image and returns image message
+
+        Parameters
+        ----------
+        image : np.ndarray
+            An RGB image of shape (width, height, 3)
+        image : np.ndarray
+            An np.ndarray of shape (4, ) containing box bounds
+
+        Returns
+        -------
+        sensor_msgs/Image:
+            An image message with bounding box drawn on image
+        """
+
+        pil_image = PILImage.fromarray(image)
+        draw = ImageDraw.Draw(pil_image)
+        ymin, xmin, ymax, xmax = tuple(bounds.astype('int'))
+        shape = [(xmin, ymin), (xmax, ymax)]
+        draw.rectangle(shape, outline="green", width=5)
+
+        image_msg = self.__bridge.cv2_to_imgmsg(
+            np.asarray(pil_image), encoding="passthrough")
+        image_msg.header.stamp = rospy.Time.now()
+
+        return image_msg
 
     def run(self):
         self._process_stream()

@@ -39,7 +39,7 @@ RUN sudo apt-get update -y || true && \
     sudo apt install -y curl && \
     curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add - && \
     sudo apt-get update || true && \
-    sudo apt-get install -y ros-$ROS_DISTRO-ros-base build-essential cmake usbutils libusb-1.0-0-dev git -y --allow-unauthenticated
+    sudo apt-get install -y ros-$ROS_DISTRO-ros-base build-essential cmake usbutils libusb-1.0-0-dev ros-$ROS_DISTRO-cv-bridge git -y --allow-unauthenticated
 
 # Install Packages depending on ROS distro
 RUN sudo apt-get install -y python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool

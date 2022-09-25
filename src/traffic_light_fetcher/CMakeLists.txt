@@ -12,8 +12,10 @@ catkin_python_setup()
 
 catkin_package(
   CATKIN_DEPENDS
-  std_msgs
   geometry_msgs
+  sensor_msgs
+  std_msgs
+  cv_bridge
 )
 
 include_directories(
