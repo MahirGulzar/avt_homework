@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-import tensorflow as tf
-import tensorflow_hub as hub
 import numpy as np
+import tensorflow_hub as hub
+import tensorflow as tf
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'    # Supress tensorflow log clutter
 
 
 class TrafficLightDetector:
@@ -13,7 +15,7 @@ class TrafficLightDetector:
     def __init__(self):
 
         # Load object detection model from tensorflow hub by default we use faster_rcnn
-        model_url="https://tfhub.dev/google/faster_rcnn/openimages_v4/inception_resnet_v2/1"
+        model_url = "https://tfhub.dev/google/faster_rcnn/openimages_v4/inception_resnet_v2/1"
         self.__detector = hub.load(model_url).signatures['default']
 
     def detect(self, image):

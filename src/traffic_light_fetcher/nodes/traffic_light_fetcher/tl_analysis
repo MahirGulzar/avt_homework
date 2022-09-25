@@ -38,7 +38,7 @@ class TrafficLightAnalysis:
             # Check if size message is available
             if self.__last_tl_size_msg is None:
                 rospy.logwarn(self.__class__.__name__ +
-                              " - A traffic light is detected but size information not available! ")
+                              " - A traffic light is detected but size information is not available! ")
                 return
 
             zone_height_msg = Float32(self.__last_tl_size_msg.y/3)

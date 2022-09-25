@@ -17,7 +17,7 @@ Traffic light fetcher ros package that detects traffic light from an input video
 
 - Using ```docker-compose```
 ```console
-docker-compose up
+docker-compose up --build
 ```
 - Using run script (if ```docker-compose``` is not installed)
 ```console

@@ -4,7 +4,6 @@
 from traffic_light_fetcher.tl_detection import TrafficLightDetector
 from geometry_msgs.msg import Vector3
 from std_msgs.msg import Bool
-import numpy as np
 import rospy
 import cv2
 
@@ -26,10 +25,11 @@ class TrafficLightFetcher:
         # ----------------
         # Node Attributes
         # ----------------
-        rospy.loginfo(self.__class__.__name__ + " - Loading detector...")
+        rospy.loginfo(self.__class__.__name__ +
+                      " - Loading high-res faster-rcnn from tensorflow_hub ...")
         self.__tl_detector = TrafficLightDetector()
         rospy.loginfo(self.__class__.__name__ +
-                      " - Detector loaded successfully! ")
+                      " - Detector ready, initial inference may take time! ")
         # Publish frequnecy by default is one frame per second
         self.__rate = rospy.Rate(1)
 
@@ -81,6 +81,6 @@ class TrafficLightFetcher:
 
 if __name__ == '__main__':
     rospy.init_node('traffic_light_fetcher',
-                    anonymous=False, log_level=rospy.ERROR)
+                    anonymous=False, log_level=rospy.INFO)
     node = TrafficLightFetcher()
     node.run()
