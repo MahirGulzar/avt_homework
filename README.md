@@ -7,6 +7,20 @@ Traffic light fetcher ros package that detects traffic light from an input video
 <br />
 <br />
 
+## Structure
+
+    ├── ...
+    ├── src
+    │   ├── traffic_light_fetcher          # ROS nodes
+    │      │── nodes
+    │      │   ├── traffic_light_fetcher
+    │      │   │   │── tl_fetcher
+    │      │   │   │── tl_analysis
+    │      │...
+    │      │── src                         # Modules
+    │      │   ├── traffic_light_fetcher
+    │      │   │   │── tl_detection.py
+    
 
 ## How to run
 
