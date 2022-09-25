@@ -1,5 +1,5 @@
 
-![example workflow](https://github.com/MahirGulzar/avt_homework/actions/workflows/linter.yml/badge.svg)
+![example workflow](https://github.com/MahirGulzar/avt_homework/actions/workflows/docker-image.yml/badge.svg)
 
 ##  Description
 <br />
