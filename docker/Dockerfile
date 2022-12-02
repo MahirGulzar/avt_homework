@@ -86,7 +86,7 @@ RUN echo "export PATH=$PATH:${HOME}/miniconda3/bin:/usr/bin:/usr/local/cuda-11.2
 
 # Clone task repo and build it
 ENV AVT_HOME="$HOME/avt_homework/"
-RUN git clone https://github.com/MahirGulzar/avt_homework.git $AVT_HOME && \
+RUN git clone https://github.com/MahirGulzar/ros_traffic_light_detector.git $AVT_HOME && \
     source /opt/ros/$ROS_DISTRO/setup.bash && \
     cd $AVT_HOME && \
     catkin_make
